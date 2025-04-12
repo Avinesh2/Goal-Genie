@@ -1,6 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { createGoal } from '../api/goal';
+import ProgressTracker from '../components/ui/ProgressTracker';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon, Target, CheckCircle2, Brain, Clock, Lightbulb } from "lucide-react";
+import Navbar from '@/components/ui/Navbar';
 
 const GoalSetup = () => {
   const [title, setTitle] = useState('');
@@ -11,6 +26,7 @@ const GoalSetup = () => {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [checkedTasks, setCheckedTasks] = useState({});
+  const [progress, setProgress] = useState(0);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -103,183 +119,301 @@ const GoalSetup = () => {
     });
   };
 
+  // Calculate progress whenever checkedTasks changes
+  useEffect(() => {
+    if (!plan) return;
+
+    let totalTasks = 0;
+    let completedTasks = 0;
+
+    plan.forEach((dayPlan, dayIndex) => {
+      const sections = parseTasks(dayPlan.task || '');
+      sections.forEach((section, sectionIndex) => {
+        section.tasks.forEach((task, taskIndex) => {
+          totalTasks++;
+          if (checkedTasks[`${dayPlan.day}-${sectionIndex}-${taskIndex}`]) {
+            completedTasks++;
+          }
+          task.subtasks.forEach((_, subtaskIndex) => {
+            totalTasks++;
+            if (checkedTasks[`${dayPlan.day}-${sectionIndex}-${taskIndex}-${subtaskIndex}`]) {
+              completedTasks++;
+            }
+          });
+        });
+      });
+    });
+
+    const newProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    setProgress(newProgress);
+  }, [checkedTasks, plan]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-4 py-2">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-2xl shadow-xl p-8 mb-8"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100vh-80px)]"
         >
-          <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center">
-            <span className="mr-3">🎯</span> Create Your Goal Plan
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-700 text-sm font-semibold mb-2">
-                  What's your goal?
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  placeholder="e.g., Learn Python Programming"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-700 text-sm font-semibold mb-2">
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={e => setStartDate(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    required
-                  />
+          {/* Left Column - Form */}
+          <div className="h-full">
+            <Card className="border-none shadow-none bg-gradient-to-br from-primary/5 to-card h-full">
+              <CardHeader className="space-y-1 py-2">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded-full bg-primary/10">
+                    <Target className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-bold tracking-tight">Create Your Goal Plan</CardTitle>
+                    <CardDescription className="text-xs mt-0.5 text-muted-foreground">
+                      Set your learning goals and we'll create a personalized plan for you
+                    </CardDescription>
+                  </div>
                 </div>
+              </CardHeader>
+              <CardContent className="py-1">
+                <form onSubmit={handleSubmit} className="space-y-2">
+                  <div className="space-y-1">
+                    <div className="space-y-1">
+                      <Label htmlFor="title" className="text-xs font-semibold">What's your goal?</Label>
+                      <Input
+                        id="title"
+                        type="text"
+                        value={title}
+                        onChange={e => setTitle(e.target.value)}
+                        placeholder="e.g., Learn Python Programming"
+                        className="h-8 text-xs"
+                        required
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-gray-700 text-sm font-semibold mb-2">
-                    Number of Days
-                  </label>
-                  <input
-                    type="number"
-                    value={numberOfDays}
-                    onChange={e => setNumberOfDays(e.target.value)}
-                    min="1"
-                    placeholder="e.g., 30"
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    required
-                  />
-                </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      <div className="space-y-1">
+                        <Label htmlFor="startDate" className="text-xs font-semibold">Start Date</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full h-8 justify-start text-left font-normal text-xs",
+                                !startDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-3 w-3" />
+                              {startDate ? format(new Date(startDate), "PPP") : <span>Pick a date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={startDate ? new Date(startDate) : undefined}
+                              onSelect={(date) => setStartDate(date ? date.toISOString().split('T')[0] : '')}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
 
-                <div>
-                  <label className="block text-gray-700 text-sm font-semibold mb-2">
-                    Hours per day
-                  </label>
-                  <input
-                    type="number"
-                    value={hoursPerDay}
-                    onChange={e => setHoursPerDay(e.target.value)}
-                    min="1"
-                    max="24"
-                    placeholder="e.g., 2"
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    required
-                  />
-                </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="numberOfDays" className="text-xs font-semibold">Number of Days</Label>
+                        <Input
+                          id="numberOfDays"
+                          type="number"
+                          value={numberOfDays}
+                          onChange={e => setNumberOfDays(e.target.value)}
+                          min="1"
+                          placeholder="e.g., 30"
+                          className="h-8 text-xs"
+                          required
+                        />
+                      </div>
 
-                <div className='hidden'>
-                  <label className="block text-gray-700 text-sm font-semibold mb-2">
-                    YouTube Playlist (optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={ytLink}
-                    onChange={e => setYtLink(e.target.value)}
-                    placeholder="Paste your YouTube playlist link"
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  />
-                </div>
-              </div>
-            </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="hoursPerDay" className="text-xs font-semibold">Hours per day</Label>
+                        <Input
+                          id="hoursPerDay"
+                          type="number"
+                          value={hoursPerDay}
+                          onChange={e => setHoursPerDay(e.target.value)}
+                          min="1"
+                          max="24"
+                          placeholder="e.g., 2"
+                          className="h-8 text-xs"
+                          required
+                        />
+                      </div>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
-              disabled={loading}
-              className={`w-full bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold text-lg transition-colors ${
-                loading ? 'opacity-75 cursor-not-allowed' : 'hover:bg-indigo-700'
-              }`}
-            >
-              {loading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Generating Your Plan...
-                </span>
-              ) : (
-                'Generate Plan'
-              )}
-            </motion.button>
-          </form>
-        </motion.div>
+                      <div className="space-y-1">
+                        <Label htmlFor="ytLink" className="text-xs font-semibold">YouTube Playlist (optional)</Label>
+                        <Input
+                          id="ytLink"
+                          type="text"
+                          value={ytLink}
+                          onChange={e => setYtLink(e.target.value)}
+                          placeholder="Paste your YouTube playlist link"
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-        {plan && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="space-y-6"
-          >
-            {plan.map((dayPlan, dayIndex) => {
-              const sections = parseTasks(dayPlan.task || '');
-              const taskDate = getTaskDate(startDate, dayPlan.day);
-              
-              return (
-                <motion.div
-                  key={dayIndex}
-                  whileHover={{ scale: 1.01 }}
-                  className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
-                >
-                  <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-800">
-                    <span className="mr-2">📅</span> Day {dayPlan.day} - {taskDate}
-                  </h3>
-                  
-                  <div className="space-y-6">
-                    {sections.map((section, sectionIndex) => (
-                      <div key={sectionIndex} className="space-y-3">
-                        <h4 className="text-lg font-medium text-blue-600">{section.title}</h4>
-                        <div className="pl-4 space-y-4">
-                          {section.tasks.map((task, taskIndex) => (
-                            <div key={taskIndex} className="space-y-2 bg-gray-50 p-4 rounded-lg">
-                              <div className="flex items-start space-x-2">
-                                <input
-                                  type="checkbox"
-                                  checked={checkedTasks[`${dayPlan.day}-${sectionIndex}-${taskIndex}`] || false}
-                                  onChange={() => handleCheckboxChange(dayPlan.day, sectionIndex, taskIndex)}
-                                  className="mt-1 h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                />
-                                <div className="flex-1">
-                                  <span className="text-gray-700 font-medium">{task.mainTask}</span>
-                                  {task.subtasks.length > 0 && (
-                                    <div className="mt-2 pl-6 space-y-2">
-                                      {task.subtasks.map((subtask, subtaskIndex) => (
-                                        <div key={subtaskIndex} className="flex items-start space-x-2">
-                                          <input
-                                            type="checkbox"
-                                            checked={checkedTasks[`${dayPlan.day}-${sectionIndex}-${taskIndex}-${subtaskIndex}`] || false}
-                                            onChange={() => handleCheckboxChange(dayPlan.day, sectionIndex, taskIndex, subtaskIndex)}
-                                            className="mt-1 h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                          />
-                                          <span className="text-gray-600 text-sm">{subtask}</span>
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-8 text-xs font-semibold"
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Generating Your Plan...
+                      </span>
+                    ) : (
+                      'Generate Plan'
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Generated Plan or Illustration */}
+          {plan ? (
+            <div className="h-full overflow-hidden">
+              <ScrollArea className="h-full w-full rounded-md">
+                <div className="p-3 space-y-3">
+                  {plan.map((dayPlan, dayIndex) => {
+                    const sections = parseTasks(dayPlan.task || '');
+                    const taskDate = getTaskDate(startDate, dayPlan.day);
+                    
+                    return (
+                      <Card key={dayIndex} className="hover:shadow-lg transition-shadow bg-gradient-to-br from-primary/5 to-card">
+                        <CardHeader className="py-2">
+                          <div className="flex items-center gap-2">
+                            <div className="p-1 rounded-full bg-primary/10">
+                              <CalendarIcon className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                            <CardTitle className="text-base font-semibold">
+                              Day {dayPlan.day} - {taskDate}
+                            </CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="py-2">
+                          <div className="space-y-3">
+                            {sections.map((section, sectionIndex) => (
+                              <div key={sectionIndex} className="space-y-1.5">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="text-sm font-semibold text-primary">{section.title}</h4>
+                                  <Badge variant="secondary" className="ml-auto text-xs">
+                                    {section.tasks.length} tasks
+                                  </Badge>
+                                </div>
+                                <Separator className="my-1" />
+                                <div className="pl-2 space-y-2">
+                                  {section.tasks.map((task, taskIndex) => (
+                                    <div key={taskIndex} className="space-y-1 bg-muted/50 p-2 rounded-lg">
+                                      <div className="flex items-start space-x-2">
+                                        <Checkbox
+                                          checked={checkedTasks[`${dayPlan.day}-${sectionIndex}-${taskIndex}`] || false}
+                                          onCheckedChange={() => handleCheckboxChange(dayPlan.day, sectionIndex, taskIndex)}
+                                          className="mt-0.5 h-3.5 w-3.5"
+                                        />
+                                        <div className="flex-1">
+                                          <span className="text-xs font-medium">{task.mainTask}</span>
+                                          {task.subtasks.length > 0 && (
+                                            <div className="mt-1 pl-4 space-y-1">
+                                              {task.subtasks.map((subtask, subtaskIndex) => (
+                                                <div key={subtaskIndex} className="flex items-start space-x-2">
+                                                  <Checkbox
+                                                    checked={checkedTasks[`${dayPlan.day}-${sectionIndex}-${taskIndex}-${subtaskIndex}`] || false}
+                                                    onCheckedChange={() => handleCheckboxChange(dayPlan.day, sectionIndex, taskIndex, subtaskIndex)}
+                                                    className="mt-0.5 h-3.5 w-3.5"
+                                                  />
+                                                  <span className="text-xs text-muted-foreground">{subtask}</span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
                                         </div>
-                                      ))}
+                                      </div>
                                     </div>
-                                  )}
+                                  ))}
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </div>
+          ) : (
+            <div className="h-full">
+              <Card className="border-none shadow-none bg-gradient-to-br from-primary/5 to-card h-full">
+                <CardContent className="flex flex-col items-center justify-center h-full p-4 text-center">
+                  <div className="mb-4 p-3 rounded-full bg-primary/10">
+                    <Brain className="h-10 w-10 text-primary" />
                   </div>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        )}
+                  <h2 className="text-lg font-bold mb-2">Your Personalized Learning Plan</h2>
+                  <p className="text-xs text-muted-foreground mb-4 max-w-md">
+                    Fill out the form on the left to generate a customized learning plan tailored to your goals and schedule.
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-2 w-full max-w-md">
+                    <div className="space-y-1 p-2 rounded-lg bg-muted/50">
+                      <div className="flex items-center gap-1">
+                        <Target className="h-3 w-3 text-primary" />
+                        <span className="text-xs font-medium">Clear Goals</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">Define your learning objectives</p>
+                    </div>
+                    
+                    <div className="space-y-1 p-2 rounded-lg bg-muted/50">
+                      <div className="flex items-center gap-1">
+                        <CalendarIcon className="h-3 w-3 text-primary" />
+                        <span className="text-xs font-medium">Flexible Schedule</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">Set your own pace</p>
+                    </div>
+                    
+                    <div className="space-y-1 p-2 rounded-lg bg-muted/50">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-primary" />
+                        <span className="text-xs font-medium">Time Management</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">Optimize your study time</p>
+                    </div>
+                    
+                    <div className="space-y-1 p-2 rounded-lg bg-muted/50">
+                      <div className="flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3 text-primary" />
+                        <span className="text-xs font-medium">Track Progress</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">Monitor your achievements</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                    <div className="flex items-center gap-1 mb-1">
+                      <Lightbulb className="h-3 w-3 text-primary" />
+                      <span className="text-xs font-medium">Pro Tip</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      For best results, be specific about your goals and realistic about your available time.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   );
