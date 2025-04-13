@@ -166,7 +166,7 @@ const GoalSetup = () => {
                   <div className="p-1 rounded-full bg-primary/10">
                     <Target className="h-3.5 w-3.5 text-primary" />
                   </div>
-                  <div>
+              <div>
                     <CardTitle className="text-lg font-bold tracking-tight">Create Your Goal Plan</CardTitle>
                     <CardDescription className="text-xs mt-0.5 text-muted-foreground">
                       Set your learning goals and we'll create a personalized plan for you
@@ -181,14 +181,14 @@ const GoalSetup = () => {
                       <Label htmlFor="title" className="text-xs font-semibold">What's your goal?</Label>
                       <Input
                         id="title"
-                        type="text"
-                        value={title}
-                        onChange={e => setTitle(e.target.value)}
-                        placeholder="e.g., Learn Python Programming"
+                  type="text"
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder="e.g., Learn Python Programming"
                         className="h-8 text-xs"
-                        required
-                      />
-                    </div>
+                  required
+                />
+              </div>
 
                     <div className="grid grid-cols-1 gap-2">
                       <div className="space-y-1">
@@ -227,57 +227,57 @@ const GoalSetup = () => {
                           min="1"
                           placeholder="e.g., 30"
                           className="h-8 text-xs"
-                          required
-                        />
-                      </div>
+                    required
+                  />
+                </div>
 
                       <div className="space-y-1">
                         <Label htmlFor="hoursPerDay" className="text-xs font-semibold">Hours per day</Label>
                         <Input
                           id="hoursPerDay"
-                          type="number"
-                          value={hoursPerDay}
-                          onChange={e => setHoursPerDay(e.target.value)}
+                    type="number"
+                    value={hoursPerDay}
+                    onChange={e => setHoursPerDay(e.target.value)}
                           min="1"
                           max="24"
-                          placeholder="e.g., 2"
+                    placeholder="e.g., 2"
                           className="h-8 text-xs"
-                          required
-                        />
-                      </div>
+                    required
+                  />
+              </div>
 
                       <div className="space-y-1">
                         <Label htmlFor="ytLink" className="text-xs font-semibold">YouTube Playlist (optional)</Label>
                         <Input
                           id="ytLink"
-                          type="text"
-                          value={ytLink}
-                          onChange={e => setYtLink(e.target.value)}
-                          placeholder="Paste your YouTube playlist link"
+                  type="text"
+                  value={ytLink}
+                  onChange={e => setYtLink(e.target.value)}
+                  placeholder="Paste your YouTube playlist link"
                           className="h-8 text-xs"
-                        />
+                />
                       </div>
-                    </div>
-                  </div>
+              </div>
+            </div>
 
                   <Button
-                    type="submit"
-                    disabled={loading}
+              type="submit"
+              disabled={loading}
                     className="w-full h-8 text-xs font-semibold"
-                  >
-                    {loading ? (
-                      <span className="flex items-center justify-center">
+            >
+              {loading ? (
+                <span className="flex items-center justify-center">
                         <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Generating Your Plan...
-                      </span>
-                    ) : (
-                      'Generate Plan'
-                    )}
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating Your Plan...
+                </span>
+              ) : (
+                'Generate Plan'
+              )}
                   </Button>
-                </form>
+      </form>
               </CardContent>
             </Card>
           </div>
@@ -287,11 +287,11 @@ const GoalSetup = () => {
             <div className="h-full overflow-hidden">
               <ScrollArea className="h-full w-full rounded-md">
                 <div className="p-3 space-y-3">
-                  {plan.map((dayPlan, dayIndex) => {
-                    const sections = parseTasks(dayPlan.task || '');
-                    const taskDate = getTaskDate(startDate, dayPlan.day);
-                    
-                    return (
+          {plan.map((dayPlan, dayIndex) => {
+              const sections = parseTasks(dayPlan.task || '');
+              const taskDate = getTaskDate(startDate, dayPlan.day);
+              
+            return (
                       <Card key={dayIndex} className="hover:shadow-lg transition-shadow bg-gradient-to-br from-primary/5 to-card">
                         <CardHeader className="py-2">
                           <div className="flex items-center gap-2">
@@ -305,7 +305,7 @@ const GoalSetup = () => {
                         </CardHeader>
                         <CardContent className="py-2">
                           <div className="space-y-3">
-                            {sections.map((section, sectionIndex) => (
+                    {sections.map((section, sectionIndex) => (
                               <div key={sectionIndex} className="space-y-1.5">
                                 <div className="flex items-center gap-2">
                                   <h4 className="text-sm font-semibold text-primary">{section.title}</h4>
@@ -315,42 +315,42 @@ const GoalSetup = () => {
                                 </div>
                                 <Separator className="my-1" />
                                 <div className="pl-2 space-y-2">
-                                  {section.tasks.map((task, taskIndex) => (
+                          {section.tasks.map((task, taskIndex) => (
                                     <div key={taskIndex} className="space-y-1 bg-muted/50 p-2 rounded-lg">
-                                      <div className="flex items-start space-x-2">
+                              <div className="flex items-start space-x-2">
                                         <Checkbox
-                                          checked={checkedTasks[`${dayPlan.day}-${sectionIndex}-${taskIndex}`] || false}
+                                  checked={checkedTasks[`${dayPlan.day}-${sectionIndex}-${taskIndex}`] || false}
                                           onCheckedChange={() => handleCheckboxChange(dayPlan.day, sectionIndex, taskIndex)}
                                           className="mt-0.5 h-3.5 w-3.5"
-                                        />
-                                        <div className="flex-1">
+                                />
+                                <div className="flex-1">
                                           <span className="text-xs font-medium">{task.mainTask}</span>
-                                          {task.subtasks.length > 0 && (
+                                  {task.subtasks.length > 0 && (
                                             <div className="mt-1 pl-4 space-y-1">
-                                              {task.subtasks.map((subtask, subtaskIndex) => (
-                                                <div key={subtaskIndex} className="flex items-start space-x-2">
+                                      {task.subtasks.map((subtask, subtaskIndex) => (
+                                        <div key={subtaskIndex} className="flex items-start space-x-2">
                                                   <Checkbox
-                                                    checked={checkedTasks[`${dayPlan.day}-${sectionIndex}-${taskIndex}-${subtaskIndex}`] || false}
+                                            checked={checkedTasks[`${dayPlan.day}-${sectionIndex}-${taskIndex}-${subtaskIndex}`] || false}
                                                     onCheckedChange={() => handleCheckboxChange(dayPlan.day, sectionIndex, taskIndex, subtaskIndex)}
                                                     className="mt-0.5 h-3.5 w-3.5"
-                                                  />
+                                          />
                                                   <span className="text-xs text-muted-foreground">{subtask}</span>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
                                         </div>
-                                      </div>
+                                      ))}
                                     </div>
-                                  ))}
+                                  )}
                                 </div>
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+              </div>
                         </CardContent>
                       </Card>
-                    );
-                  })}
+            );
+          })}
                 </div>
               </ScrollArea>
             </div>
@@ -413,8 +413,8 @@ const GoalSetup = () => {
               </Card>
             </div>
           )}
-        </motion.div>
-      </div>
+          </motion.div>
+        </div>
     </div>
   );
 };
